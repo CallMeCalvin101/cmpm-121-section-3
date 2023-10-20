@@ -10,7 +10,14 @@ export default class Play extends Phaser.Scene {
   starfield?: Phaser.GameObjects.TileSprite;
   spinner?: Phaser.GameObjects.Shape;
 
-  rotationSpeed = Phaser.Math.PI2 / 1000; // radians per millisecond
+  scrollSpeed = -4;
+
+  shipSize = 50;
+  shipSpeed = 0.5;
+  shipColor = 0xff0000;
+  canMove = true;
+
+  heightOffset = 100;
 
   constructor() {
     super("play");
@@ -41,26 +48,34 @@ export default class Play extends Phaser.Scene {
       )
       .setOrigin(0, 0);
 
-    this.spinner = this.add.rectangle(100, 100, 50, 50, 0xff0000);
+    this.spinner = this.add.rectangle(
+      (this.game.config.width as number) / 2,
+      (this.game.config.height as number) - this.heightOffset,
+      this.shipSize,
+      this.shipSize,
+      this.shipColor,
+    );
   }
 
   update(_timeMs: number, delta: number) {
-    this.starfield!.tilePositionX -= 4;
+    this.starfield!.tilePositionX += this.scrollSpeed;
 
-    if (this.left!.isDown) {
-      this.spinner!.rotation -= delta * this.rotationSpeed;
+    if (this.left!.isDown && this.canMove) {
+      this.spinner!.x -= delta * this.shipSpeed;
     }
-    if (this.right!.isDown) {
-      this.spinner!.rotation += delta * this.rotationSpeed;
+    if (this.right!.isDown && this.canMove) {
+      this.spinner!.x += delta * this.shipSpeed;
     }
 
-    if (this.fire!.isDown) {
+    if (this.fire!.isDown && this.canMove) {
+      this.canMove = false;
       this.tweens.add({
         targets: this.spinner,
         scale: { from: 1.5, to: 1 },
         duration: 300,
         ease: Phaser.Math.Easing.Sine.Out,
       });
+      this.canMove = true;
     }
   }
 }
